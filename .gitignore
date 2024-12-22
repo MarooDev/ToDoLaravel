@@ -1,0 +1,14 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Laravel / PHP
+/vendor
+/.env
+.env.*
+
+# Node
+/node_modules
+
+# Docker
+docker-compose.override.yml
