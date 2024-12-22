@@ -1,14 +1,13 @@
-FROM php:8.2-apache
+# Dockerfile
 
-# Set environment variable
-ENV DEBIAN_FRONTEND=noninteractive
+FROM php:8.2-apache
 
 # Install Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && rm composer-setup.php
 
-# Install required PHP extensions
+# Install PHP extensions
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
@@ -25,17 +24,18 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd intl pdo pdo_mysql zip opcache
 
-# Enable mod_rewrite
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
+
+# Copy custom Apache configuration
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Create necessary directories to avoid chmod errors
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html && \
+# Permissions for Laravel
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80
