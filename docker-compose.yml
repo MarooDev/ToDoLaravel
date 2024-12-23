@@ -7,12 +7,21 @@ services:
     volumes:
       - ./src:/app
     command: >
-      sh -c "if [ -z \"\$(ls -A)\" ]; then
-      echo 'src folder is empty -> installing Laravel 11...';
-      composer create-project laravel/laravel . \"^11.0\"; 
-      else 
-      echo 'src folder is not empty -> skipping.'; 
-      fi"
+      sh -c "
+        if [ -z \"\$(ls -A)\" ]; then
+          echo 'src folder is empty -> installing Laravel 11...';
+          composer create-project laravel/laravel . \"^11.0\";
+          echo 'Modifying .env to use MySQL...';
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=db/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=laravel/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=laravel/' .env
+        else
+          echo 'src folder is not empty -> skipping.';
+        fi
+      "
     restart: 'no'
 
   app:
@@ -58,21 +67,6 @@ services:
     command: bash -c "npm install && tail -f /dev/null"
     depends_on:
       - create-laravel
-    networks:
-      - laravel
-
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: todo_phpmyadmin
-    depends_on:
-      - db
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_USER: laravel
-      PMA_PASSWORD: laravel
     networks:
       - laravel
 
